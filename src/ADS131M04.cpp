@@ -2,7 +2,7 @@
 #include "ADS131M04.h"
 #include "SPI.h"
 
-#define settings SPISettings(8000000, MSBFIRST, SPI_MODE1)
+#define settings SPISettings(22000000, MSBFIRST, SPI_MODE1)
 
 ADS131M04::ADS131M04()
 {
@@ -254,6 +254,14 @@ bool ADS131M04::setOsr(uint16_t osr)
   }
 }
 
+bool ADS131M04::set_ch0_phase(uint16_t ch0phase)
+{
+
+        writeRegisterMasked(REG_CH0_CFG, ch0phase << 6 , REGMASK_CHX_CFG_PHASE);
+        return true;
+
+}
+
 bool ADS131M04::setChannelEnable(uint8_t channel, uint16_t enable)
 {
   if (channel > 3)
@@ -443,7 +451,7 @@ adcOutput ADS131M04::readADC(void)
   adcOutput res;
 
   digitalWrite(ADS131M04_CS_PIN, LOW);
-  delayMicroseconds(1);
+  //delayMicroseconds(1);
 
   x = SPI.transfer(0x00);//status
   x2 = SPI.transfer(0x00);//status
@@ -524,7 +532,7 @@ adcOutput ADS131M04::readADC(void)
   res.crc0=x;
   res.crc1=x2;
 
-  delayMicroseconds(1);
+  //delayMicroseconds(1);
   digitalWrite(ADS131M04_CS_PIN, HIGH);
 
   return res;

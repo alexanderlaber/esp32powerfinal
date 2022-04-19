@@ -2,13 +2,17 @@
 #include "ADS131M04.h"
 #include <SPI.h>
 #include "soc/rtc_wdt.h"
+#include "WaveShare_MLX90614.h"
 
 
+static uint8_t interruptpin=27;
 static uint8_t numberofsamples= 2000;//2000
 static uint8_t readyword[5];
 char message;
 ADS131M04 adc;
 adcOutput res;
+//MLX90614 = WaveShare_MLX90614();
+
 volatile uint8_t readflag =0;
 
 uint8_t spicrcerror=0;
@@ -48,12 +52,13 @@ void ICACHE_RAM_ATTR ISR() {
 }
 
 void setup() {
+   // MLX90614.begin();
     pinMode(5, OUTPUT);
     digitalWrite(5, LOW);
-    delay(100);
+    delay(200);
     digitalWrite(5, HIGH);
     delay(100);
-    pinMode(21, INPUT); //dataready
+    pinMode(interruptpin, INPUT); //dataready
     //hw_wdt_disable();
     rtc_wdt_protect_off();
     rtc_wdt_disable();
@@ -66,16 +71,18 @@ void setup() {
     readyword[4]=0x79;
     Serial.begin(115200);
 
-    adc.begin(18, 19, 23, 22);// cs, dataready
-    adc.setOsr(1);
+    adc.begin(18, 19, 23, 25);// cs, dataready
+    adc.setOsr(8);
+    adc.set_ch0_phase(63);
+    //adc.setChannelOffsetCalibration();
     //adc.setInputChannelSelection(0, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
     //adc.setInputChannelSelection(1, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
-    attachInterrupt(digitalPinToInterrupt(21), ISR, FALLING);
+    attachInterrupt(digitalPinToInterrupt(interruptpin), ISR, FALLING);
 }
 
 void loop() {
     if (readflag){
-        detachInterrupt(digitalPinToInterrupt(21));
+        detachInterrupt(digitalPinToInterrupt(interruptpin));
         readflag=0;
         res = adc.readADC();
         buff[counter*6] = res.ch0x;//res.ch0x
@@ -141,8 +148,12 @@ Serial.println(res.crc1,BIN);*/
                 registerbytes[0] = (register_contents >> 8) & 255;
                 Serial.write(registerbytes, sizeof(registerbytes));
             }
+            /*double temp_obj = MLX90614.readObjectTemp();
+            double temp_amb = MLX90614.readAmbientTemp();*/
+            Serial.write(registerbytes, sizeof(registerbytes));
+
         }
-        attachInterrupt(digitalPinToInterrupt(21), ISR, FALLING);
+        attachInterrupt(digitalPinToInterrupt(interruptpin), ISR, FALLING);
 
     }
 
