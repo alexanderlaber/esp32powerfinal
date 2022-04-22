@@ -254,11 +254,18 @@ bool ADS131M04::setOsr(uint16_t osr)
   }
 }
 
-bool ADS131M04::set_ch0_phase(uint16_t ch0phase)
+bool ADS131M04::set_ch0_phase(int16_t ch0phase)
 {
 
         writeRegisterMasked(REG_CH0_CFG, ch0phase << 6 , REGMASK_CHX_CFG_PHASE);
         return true;
+
+}
+bool ADS131M04::set_ch1_phase(int16_t ch1phase)
+{
+
+    writeRegisterMasked(REG_CH1_CFG, ch1phase << 6 , REGMASK_CHX_CFG_PHASE);
+    return true;
 
 }
 

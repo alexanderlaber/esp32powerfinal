@@ -11,13 +11,15 @@ static uint8_t readyword[5];
 char message;
 ADS131M04 adc;
 adcOutput res;
-//MLX90614 = WaveShare_MLX90614();
+irOutput irres;
+WaveShare_MLX90614   MLX90614 = WaveShare_MLX90614();
 
 volatile uint8_t readflag =0;
 
 uint8_t spicrcerror=0;
 uint8_t registerbytes[2];
 uint8_t crcdatareceivebuff[9];
+uint8_t irbytearray[6];//4+2crc;
 uint8_t buff[12000]; //numberofsamples*6 12000
 uint8_t smallsendbuff[65];//60+2 for packet counter and +2 for crc
 uint16_t register_contents = 0;
@@ -52,7 +54,7 @@ void ICACHE_RAM_ATTR ISR() {
 }
 
 void setup() {
-   // MLX90614.begin();
+    MLX90614.begin();
     pinMode(5, OUTPUT);
     digitalWrite(5, LOW);
     delay(200);
@@ -73,7 +75,8 @@ void setup() {
 
     adc.begin(18, 19, 23, 25);// cs, dataready
     adc.setOsr(8);
-    adc.set_ch0_phase(63);
+    adc.set_ch0_phase(32);
+    //adc.set_ch1_phase(32);
     //adc.setChannelOffsetCalibration();
     //adc.setInputChannelSelection(0, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
     //adc.setInputChannelSelection(1, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
@@ -119,6 +122,7 @@ Serial.print(" ");
 Serial.println(res.crc1,BIN);*/
         counter+=1;
         if (counter==sizeof(buff)/6){
+            irres = MLX90614.readTemp(); //read temperatures from ir sensor
             Serial.write(readyword,5);
             while (Serial.available() > 0){
                 message = Serial.read();
@@ -148,9 +152,14 @@ Serial.println(res.crc1,BIN);*/
                 registerbytes[0] = (register_contents >> 8) & 255;
                 Serial.write(registerbytes, sizeof(registerbytes));
             }
-            /*double temp_obj = MLX90614.readObjectTemp();
-            double temp_amb = MLX90614.readAmbientTemp();*/
-            Serial.write(registerbytes, sizeof(registerbytes));
+            irbytearray[0]=irres.ambtemp1;
+            irbytearray[1]=irres.ambtemp2;
+            irbytearray[2]=irres.packagetemp1;
+            irbytearray[3]=irres.packagetemp2;
+            crc_topython =crc16manual((uint8_t*)irbytearray, 4);
+            irbytearray[4]=crc_topython & 255;
+            irbytearray[5]=(crc_topython >> 8) & 255;
+            Serial.write(irbytearray, sizeof(irbytearray));
 
         }
         attachInterrupt(digitalPinToInterrupt(interruptpin), ISR, FALLING);

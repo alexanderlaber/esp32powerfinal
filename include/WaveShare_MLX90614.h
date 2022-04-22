@@ -13,6 +13,13 @@
 #define   AMBIENT_TEMP    0x06
 #define   OBJECT_TEMP     0x07
 
+struct irOutput
+{
+    uint8_t ambtemp1;
+    uint8_t ambtemp2;
+    uint8_t packagetemp1;
+    uint8_t packagetemp2;
+};
 
 class  WaveShare_MLX90614{
  public:
@@ -20,10 +27,9 @@ class  WaveShare_MLX90614{
   boolean begin();
   uint8_t readObjectTemp(void);
   uint8_t readAmbientTemp(void);
-
+  irOutput readTemp(void);
  private:
   uint8_t   _addr;
-  uint8_t   readTemp(uint8_t reg);
 };
 
 #endif 

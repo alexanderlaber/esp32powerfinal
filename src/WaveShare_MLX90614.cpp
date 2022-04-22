@@ -14,7 +14,7 @@ boolean WaveShare_MLX90614::begin(void) {
   return true;
 }
 
-
+/*
 uint8_t WaveShare_MLX90614::readObjectTemp(void) {
   return readTemp(OBJECT_TEMP);
 }
@@ -22,32 +22,34 @@ uint8_t WaveShare_MLX90614::readObjectTemp(void) {
 
 uint8_t WaveShare_MLX90614::readAmbientTemp(void) {
   return readTemp(AMBIENT_TEMP);
-}
+}*/
 
-uint8_t WaveShare_MLX90614::readTemp(uint8_t reg) {
-  float  temp;
-  uint16_t  tempData;
+irOutput WaveShare_MLX90614::readTemp(void) {
+
   uint8_t   pec;
 
-  uint8_t   tempData1;
-  uint8_t   tempData2;
-
-
+  irOutput irres;
 
   Wire.beginTransmission(_addr);
-  Wire.write(reg); 
+  Wire.write(OBJECT_TEMP);
   Wire.endTransmission(false);  // the param must be "false" to restart the communication
-  
   Wire.requestFrom(_addr, (uint8_t)3);
-  tempData1 = Wire.read();
-  tempData2= Wire.read();
+  irres.packagetemp1 = Wire.read();
+  irres.packagetemp2= Wire.read();
+  pec = Wire.read();
 
+  Wire.beginTransmission(_addr);
+  Wire.write(AMBIENT_TEMP);
+  Wire.endTransmission(false);  // the param must be "false" to restart the communication
+  Wire.requestFrom(_addr, (uint8_t)3);
+  irres.ambtemp1 = Wire.read();
+  irres.ambtemp2= Wire.read();
   pec = Wire.read();
   
-  temp = tempData;
+  /*temp = tempData;
   temp *= 0.02;
-  temp  -= 273.15;
-  return tempData1,tempData2;
+  temp  -= 273.15;*/
+  return irres;
 }
 
 
