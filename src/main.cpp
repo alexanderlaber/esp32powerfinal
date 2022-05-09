@@ -29,7 +29,7 @@ uint16_t crc_adc_received;
 
 uint32_t counter=0;
 uint32_t bigcounter=0;
-uint32_t o,p,x =0;
+uint32_t a,o,p,x =0;
 
 uint16_t crc16manual(uint8_t* pData, int length)
 {
@@ -85,6 +85,19 @@ void setup() {
 }
 
 void loop() {
+    while (Serial.available() > 0){
+        detachInterrupt(digitalPinToInterrupt(interruptpin));
+        message = Serial.read();
+        for(a=0;a<9;++a){
+            if(message==0x30+a){
+                adc.setOsr(a);
+                attachInterrupt(digitalPinToInterrupt(interruptpin), ISR, FALLING);
+                delay(200);
+                break;
+            }
+        }
+    }
+
     if (readflag){
         detachInterrupt(digitalPinToInterrupt(interruptpin));
         readflag=0;
