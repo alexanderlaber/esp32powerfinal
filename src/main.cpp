@@ -74,8 +74,9 @@ void setup() {
     Serial.begin(115200);
 
     adc.begin(18, 19, 23, 25);// cs, dataready
-    adc.setOsr(8);
-    adc.set_ch0_phase(32);
+    adc.setOsr(3);
+    //adc.set_ch0_phase(32);
+    //adc.setGlobalChop(1);
     //adc.set_ch1_phase(32);
     //adc.setChannelOffsetCalibration();
     //adc.setInputChannelSelection(0, INPUT_CHANNEL_MUX_AIN0P_AIN0N);

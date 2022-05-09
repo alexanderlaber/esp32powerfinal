@@ -279,9 +279,7 @@ public:
   bool setOsr(uint16_t osr);
   bool set_ch0_phase(int16_t phasech0);
   bool set_ch1_phase(int16_t phasech1);
-
-
-    adcOutput readADC(void);
+  adcOutput readADC(void);
 
 //private:
   uint8_t writeRegister(uint8_t address, uint16_t value);
