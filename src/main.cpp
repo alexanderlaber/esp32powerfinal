@@ -56,6 +56,12 @@ void ICACHE_RAM_ATTR ISR() {
 void setup() {
     MLX90614.begin();
     pinMode(5, OUTPUT);
+    pinMode(2, OUTPUT);//clockenable signal
+    pinMode(0, OUTPUT);//reset signal
+    digitalWrite(2, LOW);
+    digitalWrite(0, LOW);
+    delay(200);
+    digitalWrite(0, HIGH);
     digitalWrite(5, LOW);
     delay(200);
     digitalWrite(5, HIGH);
@@ -75,7 +81,7 @@ void setup() {
 
     adc.begin(18, 19, 23, 25);// cs, dataready
     adc.setOsr(3);
-    //adc.set_ch0_phase(32);
+    adc.set_ch0_phase(-32);
     //adc.setGlobalChop(1);
     //adc.set_ch1_phase(32);
     //adc.setChannelOffsetCalibration();
@@ -85,18 +91,36 @@ void setup() {
 }
 
 void loop() {
-    while (Serial.available() > 0){
+    // receive osr value from serial
+    while (Serial.available() > 0) {
         detachInterrupt(digitalPinToInterrupt(interruptpin));
         message = Serial.read();
-        for(a=0;a<9;++a){
-            if(message==0x30+a){
+        for (a = 0; a < 9; ++a) {
+            if (message == 0x30 + a) {
                 adc.setOsr(a);
                 attachInterrupt(digitalPinToInterrupt(interruptpin), ISR, FALLING);
-                delay(200);
+                delay(4000);
                 break;
             }
         }
     }
+        while (Serial.available() > 0){
+            detachInterrupt(digitalPinToInterrupt(interruptpin));
+        message = Serial.read();
+        if(message==0x30){ //disable clock
+            digitalWrite(2, HIGH);
+            attachInterrupt(digitalPinToInterrupt(interruptpin), ISR, FALLING);
+            delay(200);
+            break;
+        }
+        else if(message==0x31){//enable clock
+            digitalWrite(2, LOW);
+            attachInterrupt(digitalPinToInterrupt(interruptpin), ISR, FALLING);
+            delay(200);
+            break;
+        }
+    }
+
 
     if (readflag){
         detachInterrupt(digitalPinToInterrupt(interruptpin));
